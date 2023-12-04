@@ -174,3 +174,64 @@ Case 3: App’s process killed with activities on back stack
 	Activity 2 : onPause -> onStop -> onDestroy (parallel)
 
 -- State of the full back stack is saved but, in order to efficiently use resources, activities are only restored when they are recreated.
+
+Coroutines
+1. Light weight thread and execute on top of threads (Because normal thread are limited and expensive) but with coroutines threads can be freed if waiting.
+2. Multiple coroutines can be executed on single thread, because if the task is taking long time, thread can be freed.
+
+Coroutine scope and Coroutine context and Dispatchers.
+Scope - Defines lifetime of coroutine. So that all coroutines associated with the scope can be cancelled.
+Context - Defines threads on which coroutine will run with the help of dispatchers.
+
+Dispatchers : Dispatch the coroutine on Threads. Dispatchers.Main, Dispatchers.IO
+
+Suspending Functions : suspends the execution on current thread and frees the thread. Suspending function should be called from coroutine or other suspending function. For making callback based code to sequential code.
+
+Job - It helps to manage coroutine and cancel it or wait for it. Job object is returned when we create the coroutine. And we can use job.join() to wait for its completion.
+
+Join : Job.join() wait till coroutine is finished.
+
+Launch : Fire and forget coroutine, we don’t care about result (returns JOB instance)
+
+Async/Await : coroutine executed using Async returns a value and we can wait for this value till it’s returned. (Returns Deferred<T> subclass of Job)
+
+Inside a coroutine suspending functions run synchronously so we can wait for result. But outside we have to use join or async-await. If there are multiple suspending functions and we want to run them in parallel inside a coroutine either we can execute them in separate coroutines altogether or execute them separately inside the main coroutine using launch and async-await.
+
+Jobs have parent-child relationship. If we execute coroutines inside a coroutine they become child jobs. Child jobs inherit the context of parent job and are cancelled if parent job is cancelled. But they can have their own context as well by explicitly defining it. We can check if the coroutine is still Active and then cancel based on it.
+
+Parent job cancel the child coroutine if it returns CancellationException if it return some other exception entire coroutine is cancelled.
+
+withContext() : blocks the coroutine till it gets completed and then executes the later commands
+
+runBlocking : it block the thread until coroutine is completed, the other commands will be be executed till the coroutine is completed but the program won’t exit till coroutine is complete. Useful in test cases.
+
+ViewModelScope is attached to ViewModel. Lifecycle Scope is attached to activities or fragments.
+
+Dependency Injection
+Without DI :
+1. Code is not unit testable.
+2. Non extensible code because dependency cannot be changed later.
+3. Violate single responsibility principle, creating other objects.
+4. Lifetime problem (Database requires single connections but every class creates its own connection) (Non-reusable). 
+
+Constructor Injection and Field Injection
+
+Dagger 2 : Helps to implement DI
+1. Consumer - @Inject
+2. Producer - @Module, @Provides, @Binds
+3. Connector - @Component (connects producer and consumer)
+
+Dagger-Hilt
+We get components and scopes by default. Dependencies defined in parent component are available to child component by default.
+Scopes define boundary. Like component will be singleton in activity with @ActivityScopre
+Runtime dependencies are available	automatically like ApplicationContext.
+
+Constructor Injection cannot be used in case of Third party libraries, on interfaces or Builder patter object creation. So we use modules and define how to create objects of it.
+
+@InstallIn attaches the module to component. Hilt provides Application and Activity component by default. Application component is Singleton component. Components follow hierarchy.
+
+@Binds to bind an interface with its implementation.
+
+Qualifiers help to resolve binding in case of multiple implementations of same type, then which object to return. @Named(“name”) is used.
+
+@HiltViewModel automatically creates ViewModel Factory and injects dependencies.
