@@ -295,3 +295,62 @@ Kotlin Specifics :
 8. Companion Object : Declare static properties and methods and constants inside class, each class can have only one companion object. Companion object can have init blocks. They are not inherited by sub classes unlike static methods in Java
 
 
+3. Fragments 
+
+Case 1 : Activity with Fragment starts and finishes
+- App Started : 
+Activity onCreate -> Fragment -> onAttach -> onCreate -> onCreateView -> onActivityCreated 
+Activity onStart || Fragment onStart -> Activity onResume || Fragment  onResume
+- Back pressed : Activity onPause || Fragment onPause -> Activity onStop || Fragment onStop -> Activity onDestroy || Fragment onDestroyView -> onDestroy -> onDetach
+* Only onCreate of activity is executed before fragment’s. Rest all callbacks run in parallel, so anyone can be executed first.
+
+
+1. Fragment launched in Activity
+
+- Activity onCreate
+- Fragment onAttach -> onCreate -> onCreateView -> onViewCreated
+- After activity’s onCreate is done -> Fragment’s onActivityCreated 
+
+- Activity onStart || Fragment onStart
+- Activity onResume || Fragment onResume
+
+2. Opening second fragment from first on top
+
+- Fragment 1 - onPause -> onStop
+- Fragment 2 -  all starting methods (till onStart)
+- Fragment 1 - onDestroyView (Save instance is not called now but on config change)
+- Fragment 2 - onResume
+
+3. Back from second fragment
+- Fragment 2 - onPause -> onStop
+- Fragment 1 - onCreateView -> onViewCreated -> onActivityCreated -> onStart
+- Fragment 2 - onDestroyView -> onDestroy -> onDetach
+- Fragment 1- onResume
+
+4. Go to home and back 
+	a) Fragment 1 open
+		- Fragment and Activity paused -> stopped -> instance saved
+	
+	b) Fragment 2 open
+		- Fragment 1: onDestroyView
+		- Fragment 2 : pause -> stopped -> save instance state
+		- Fragment 1 : save instance state
+
+
+
+4. Configuration Change with fragment and activity
+
+- Fragment and Activity pauses and stops
+- Fragment and Activity onSaveInstanceState
+- Fragment and Activity Destroy
+- Fragment and Activity Created again
+  
+
+5. Configuration change with fragments on back stack
+- Fragment 2/Activity - Pause -> Stop -> SaveInstanceState (for all fragments)
+- Activity Destroy - Fragment 2 Destroy/Detach and Fragment 1 destroy and detach
+- Activity create -> Attach and create all fragments
+- Fragment 2 remaining creation
+- Activity start and Restore instance state || Fragment Start
+- Activity Resume || Fragment Resume
+
